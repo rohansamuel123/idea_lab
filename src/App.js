@@ -1,10 +1,5 @@
-import {
-  motion,
-  useScroll,
-  useTransform,
-  AnimatePresence,
-} from "framer-motion";
-import { useEffect, useCallback, useState, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState } from "react";
 
 const ORANGE = "#FF6B00";
 const ORANGE_GLOW = "rgba(255,107,0,0.18)";
