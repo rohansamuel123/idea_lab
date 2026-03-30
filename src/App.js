@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
+import { SpeedInsights } from '@vercel/speed-insights/react';
 
 const ORANGE = "#FF6B00";
 
@@ -1193,6 +1194,7 @@ export default function App() {
         <CTA />
         <Footer />
       </div>
+      <SpeedInsights />
     </>
   );
 }
