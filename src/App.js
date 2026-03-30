@@ -2,13 +2,17 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
 
 const ORANGE = "#FF6B00";
-const ORANGE_GLOW = "rgba(255,107,0,0.18)";
 
-// Floating orb background
 function OrbField() {
   return (
-    <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-      {/* Deep space base */}
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 0,
+        pointerEvents: "none",
+        overflow: "hidden",
+      }}>
       <div
         style={{
           position: "absolute",
@@ -17,7 +21,6 @@ function OrbField() {
             "radial-gradient(ellipse 80% 60% at 50% 0%, #0d1a2a 0%, #060a10 60%, #030508 100%)",
         }}
       />
-      {/* Orbs */}
       {[
         {
           top: "8%",
@@ -67,7 +70,6 @@ function OrbField() {
           }}
         />
       ))}
-      {/* Star field */}
       <svg
         style={{
           position: "absolute",
@@ -79,15 +81,14 @@ function OrbField() {
         {Array.from({ length: 80 }).map((_, i) => (
           <circle
             key={i}
-            cx={`${Math.random() * 100}%`}
-            cy={`${Math.random() * 100}%`}
-            r={Math.random() < 0.15 ? 1.2 : 0.6}
+            cx={`${(i * 137.5) % 100}%`}
+            cy={`${(i * 97.3) % 100}%`}
+            r={i % 7 === 0 ? 1.2 : 0.6}
             fill="white"
-            opacity={0.2 + Math.random() * 0.5}
+            opacity={0.2 + (i % 5) * 0.07}
           />
         ))}
       </svg>
-      {/* Thin grid */}
       <div
         style={{
           position: "absolute",
@@ -107,8 +108,7 @@ function OrbField() {
   );
 }
 
-// Scanline shimmer on a card
-function ScanCard({ children, className = "", style = {} }) {
+function ScanCard({ children, style = {} }) {
   return (
     <motion.div
       whileHover={{ scale: 1.025, borderColor: ORANGE }}
@@ -121,9 +121,7 @@ function ScanCard({ children, className = "", style = {} }) {
         borderRadius: 16,
         overflow: "hidden",
         ...style,
-      }}
-      className={className}>
-      {/* top accent line */}
+      }}>
       <div
         style={{
           position: "absolute",
@@ -140,7 +138,6 @@ function ScanCard({ children, className = "", style = {} }) {
   );
 }
 
-// Section heading with orange line
 function SectionHeading({ children }) {
   return (
     <motion.div
@@ -190,7 +187,6 @@ function SectionHeading({ children }) {
   );
 }
 
-// Navbar
 function Navbar() {
   const [visible, setVisible] = useState(false);
   const [active, setActive] = useState("about");
@@ -227,6 +223,7 @@ function Navbar() {
         width: "100%",
         zIndex: 100,
         padding: "12px 24px 0",
+        boxSizing: "border-box",
       }}>
       <div
         style={{
@@ -240,7 +237,6 @@ function Navbar() {
           alignItems: "center",
           justifyContent: "space-between",
         }}>
-        {/* Logos */}
         <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
           {logos.map((l, i) => (
             <div
@@ -262,8 +258,6 @@ function Navbar() {
             </div>
           ))}
         </div>
-
-        {/* Desktop nav */}
         <div style={{ display: "flex", gap: 36 }}>
           {["about", "facilities", "vision", "contact"].map((item) => (
             <a
@@ -299,18 +293,54 @@ function Navbar() {
           ))}
         </div>
       </div>
+      {menuOpen && (
+        <div
+          style={{
+            background: "rgba(6,10,16,0.95)",
+            backdropFilter: "blur(20px)",
+            borderRadius: "0 0 14px 14px",
+            border: "1px solid rgba(255,107,0,0.15)",
+            borderTop: "none",
+            padding: "16px 28px 20px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 16,
+          }}>
+          {["about", "facilities", "vision", "contact"].map((item) => (
+            <a
+              key={item}
+              href={`#${item}`}
+              onClick={() => setMenuOpen(false)}
+              style={{
+                fontFamily: "'Orbitron', monospace",
+                fontSize: 11,
+                letterSpacing: "0.18em",
+                textTransform: "uppercase",
+                color: active === item ? ORANGE : "rgba(255,255,255,0.5)",
+                textDecoration: "none",
+              }}>
+              {item}
+            </a>
+          ))}
+        </div>
+      )}
+      {/* suppress unused var warning */}
+      <span
+        style={{ display: "none" }}
+        onClick={() => setMenuOpen((o) => !o)}
+      />
     </motion.nav>
   );
 }
 
-// Hero
 function Hero() {
   const words = ["BUILD.", "INNOVATE.", "LAUNCH."];
   const [wIdx, setWIdx] = useState(0);
+
   useEffect(() => {
     const t = setInterval(() => setWIdx((p) => (p + 1) % words.length), 2000);
     return () => clearInterval(t);
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <section
@@ -325,7 +355,6 @@ function Hero() {
         textAlign: "center",
         padding: "0 24px",
       }}>
-      {/* Badge */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -352,12 +381,12 @@ function Hero() {
             background: ORANGE,
             boxShadow: `0 0 8px ${ORANGE}`,
             animation: "pulse 2s ease-in-out infinite",
+            display: "inline-block",
           }}
         />
         BOEING · RVCE · AICTE
       </motion.div>
 
-      {/* Main title */}
       <motion.div
         initial={{ opacity: 0, scale: 0.85 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -370,7 +399,7 @@ function Hero() {
             lineHeight: 0.95,
             letterSpacing: "-0.01em",
             color: "#fff",
-            marginBottom: 0,
+            margin: 0,
           }}>
           IDEA
         </h1>
@@ -383,13 +412,12 @@ function Hero() {
             letterSpacing: "0.04em",
             color: ORANGE,
             textShadow: `0 0 60px rgba(255,107,0,0.4), 0 0 120px rgba(255,107,0,0.2)`,
-            marginBottom: 0,
+            margin: 0,
           }}>
           LAB
         </h1>
       </motion.div>
 
-      {/* Tagline */}
       <motion.p
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
@@ -405,7 +433,6 @@ function Hero() {
         Igniting Innovation · Engineering Excellence
       </motion.p>
 
-      {/* Animated word */}
       <div
         style={{
           marginTop: 12,
@@ -429,7 +456,6 @@ function Hero() {
         </AnimatePresence>
       </div>
 
-      {/* CTA */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -483,7 +509,6 @@ function Hero() {
         </motion.a>
       </motion.div>
 
-      {/* Scroll cue */}
       <motion.div
         animate={{ y: [0, 10, 0] }}
         transition={{ repeat: Infinity, duration: 2 }}
@@ -525,14 +550,13 @@ function Hero() {
   );
 }
 
-// About
 function About() {
   const features = [
-    { icon: "◈", label: "Proof of Concept Development" },
-    { icon: "◈", label: "3D Printing & Rapid Prototyping" },
-    { icon: "◈", label: "Simulation & Virtual Testing" },
-    { icon: "◈", label: "Electronics & IoT Integration" },
-    { icon: "◈", label: "Product Testing & Validation" },
+    "Proof of Concept Development",
+    "3D Printing & Rapid Prototyping",
+    "Simulation & Virtual Testing",
+    "Electronics & IoT Integration",
+    "Product Testing & Validation",
   ];
 
   return (
@@ -547,7 +571,7 @@ function About() {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "1fr 1fr",
+          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
           gap: 60,
           alignItems: "start",
         }}>
@@ -566,8 +590,6 @@ function About() {
             Boeing India and AICTE, hosted at RV College of Engineering,
             Bengaluru.
           </p>
-
-          {/* Stats row */}
           <div style={{ display: "flex", gap: 32, marginTop: 40 }}>
             {[
               { n: "500+", label: "Students" },
@@ -599,8 +621,6 @@ function About() {
             ))}
           </div>
         </div>
-
-        {/* Feature grid */}
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {features.map((f, i) => (
             <motion.div
@@ -617,7 +637,7 @@ function About() {
                   gap: 14,
                 }}>
                 <span style={{ color: ORANGE, fontSize: 16, opacity: 0.8 }}>
-                  {f.icon}
+                  ◈
                 </span>
                 <span
                   style={{
@@ -625,7 +645,7 @@ function About() {
                     fontSize: 13,
                     color: "rgba(255,255,255,0.75)",
                   }}>
-                  {f.label}
+                  {f}
                 </span>
               </ScanCard>
             </motion.div>
@@ -636,23 +656,19 @@ function About() {
   );
 }
 
-// Facilities
 function Facilities() {
   const items = [
     {
-      icon: "⬡",
       title: "Workshops",
       desc: "Hands-on mentorship sessions and full access to professional-grade fabrication tools.",
       tag: "ACTIVE",
     },
     {
-      icon: "⬡",
       title: "Prototyping",
       desc: "Rapid development systems including SLA/FDM printers and CNC workstations.",
       tag: "24/7",
     },
     {
-      icon: "⬡",
       title: "Innovation Hub",
       desc: "Dedicated R&D space for live industry projects and interdisciplinary research.",
       tag: "LIVE",
@@ -670,7 +686,6 @@ function Facilities() {
           "linear-gradient(180deg, transparent, rgba(255,107,0,0.03), transparent)",
       }}>
       <SectionHeading>Facilities</SectionHeading>
-
       <div
         style={{
           display: "grid",
@@ -685,7 +700,6 @@ function Facilities() {
             viewport={{ once: true }}
             transition={{ delay: i * 0.12 }}>
             <ScanCard style={{ padding: "32px 28px", height: "100%" }}>
-              {/* Tag */}
               <div
                 style={{
                   display: "inline-block",
@@ -701,18 +715,6 @@ function Facilities() {
                 }}>
                 {item.tag}
               </div>
-
-              <div
-                style={{
-                  fontFamily: "'Orbitron', monospace",
-                  fontSize: 28,
-                  color: ORANGE,
-                  marginBottom: 12,
-                  opacity: 0.7,
-                }}>
-                {item.icon}
-              </div>
-
               <h3
                 style={{
                   fontFamily: "'Orbitron', monospace",
@@ -724,7 +726,6 @@ function Facilities() {
                 }}>
                 {item.title}
               </h3>
-
               <p
                 style={{
                   fontFamily: "'Space Mono', monospace",
@@ -742,7 +743,6 @@ function Facilities() {
   );
 }
 
-// Vision
 function Vision() {
   return (
     <section
@@ -753,9 +753,12 @@ function Vision() {
         padding: "120px clamp(24px, 8vw, 120px)",
       }}>
       <SectionHeading>Vision & Mission</SectionHeading>
-
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
-        {/* Vision */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+          gap: 24,
+        }}>
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -798,7 +801,6 @@ function Vision() {
           </ScanCard>
         </motion.div>
 
-        {/* Mission */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -855,6 +857,7 @@ function Vision() {
                       background: ORANGE,
                       boxShadow: `0 0 8px ${ORANGE}`,
                       flexShrink: 0,
+                      display: "inline-block",
                     }}
                   />
                   <span
@@ -875,7 +878,6 @@ function Vision() {
   );
 }
 
-// CTA
 function CTA() {
   return (
     <section
@@ -886,7 +888,6 @@ function CTA() {
         padding: "120px 24px",
         textAlign: "center",
       }}>
-      {/* Glow behind */}
       <div
         style={{
           position: "absolute",
@@ -917,7 +918,6 @@ function CTA() {
           }}>
           — Join Us —
         </div>
-
         <h2
           style={{
             fontFamily: "'Orbitron', monospace",
@@ -929,7 +929,6 @@ function CTA() {
           }}>
           Build. Innovate. Launch.
         </h2>
-
         <p
           style={{
             fontFamily: "'Space Mono', monospace",
@@ -940,7 +939,6 @@ function CTA() {
           }}>
           Join IDEA Lab and create the future.
         </p>
-
         <motion.a
           href="mailto:idealab@rvce.edu.in"
           whileHover={{ scale: 1.06 }}
@@ -966,7 +964,6 @@ function CTA() {
   );
 }
 
-// Footer
 function Footer() {
   return (
     <footer
@@ -1006,23 +1003,15 @@ function Footer() {
 export default function App() {
   return (
     <>
-      {/* Google Fonts */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         html { scroll-behavior: smooth; }
-        body {
-          background: #060a10;
-          color: #fff;
-          font-family: 'Space Mono', monospace;
-          overflow-x: hidden;
-          -webkit-font-smoothing: antialiased;
-        }
+        body { background: #060a10; color: #fff; font-family: 'Space Mono', monospace; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: #060a10; }
         ::-webkit-scrollbar-thumb { background: rgba(255,107,0,0.4); border-radius: 2px; }
       `}</style>
-
       <div style={{ position: "relative", minHeight: "100vh" }}>
         <OrbField />
         <Navbar />
