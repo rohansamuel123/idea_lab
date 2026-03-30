@@ -3,6 +3,18 @@ import { useEffect, useState } from "react";
 
 const ORANGE = "#FF6B00";
 
+/* ─── responsive helper ─── */
+function useIsMobile() {
+  const [mobile, setMobile] = useState(() => window.innerWidth < 768);
+  useEffect(() => {
+    const fn = () => setMobile(window.innerWidth < 768);
+    window.addEventListener("resize", fn);
+    return () => window.removeEventListener("resize", fn);
+  }, []);
+  return mobile;
+}
+
+/* ─── background ─── */
 function OrbField() {
   return (
     <div
@@ -100,18 +112,20 @@ function OrbField() {
       />
       <style>{`
         @keyframes orbFloat {
-          0% { transform: translate(0, 0) scale(1); }
-          100% { transform: translate(30px, -40px) scale(1.08); }
+          0%   { transform: translate(0,0) scale(1); }
+          100% { transform: translate(30px,-40px) scale(1.08); }
         }
       `}</style>
     </div>
   );
 }
 
+/* ─── card ─── */
 function ScanCard({ children, style = {} }) {
   return (
     <motion.div
-      whileHover={{ scale: 1.025, borderColor: ORANGE }}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
       transition={{ type: "spring", stiffness: 300 }}
       style={{
         position: "relative",
@@ -138,33 +152,35 @@ function ScanCard({ children, style = {} }) {
   );
 }
 
+/* ─── section heading ─── */
 function SectionHeading({ children }) {
   return (
     <motion.div
-      initial={{ opacity: 0, x: -50 }}
+      initial={{ opacity: 0, x: -40 }}
       whileInView={{ opacity: 1, x: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.6 }}
-      style={{ marginBottom: "3rem" }}>
+      style={{ marginBottom: "2.5rem" }}>
       <div
         style={{
           display: "flex",
           alignItems: "center",
-          gap: 16,
+          gap: 12,
           marginBottom: 8,
         }}>
         <div
           style={{
-            width: 36,
+            width: 28,
             height: 2,
             background: "linear-gradient(90deg, #FF6B00, transparent)",
+            flexShrink: 0,
           }}
         />
         <span
           style={{
             fontFamily: "'Orbitron', monospace",
-            fontSize: 11,
-            letterSpacing: "0.25em",
+            fontSize: 10,
+            letterSpacing: "0.22em",
             color: ORANGE,
             textTransform: "uppercase",
             opacity: 0.8,
@@ -175,11 +191,11 @@ function SectionHeading({ children }) {
       <h2
         style={{
           fontFamily: "'Orbitron', monospace",
-          fontSize: "clamp(28px, 4vw, 44px)",
+          fontSize: "clamp(24px, 6vw, 44px)",
           fontWeight: 700,
           color: "#fff",
-          letterSpacing: "0.04em",
-          lineHeight: 1.1,
+          letterSpacing: "0.03em",
+          lineHeight: 1.15,
         }}>
         {children}
       </h2>
@@ -187,7 +203,9 @@ function SectionHeading({ children }) {
   );
 }
 
+/* ─── navbar ─── */
 function Navbar() {
+  const isMobile = useIsMobile();
   const [visible, setVisible] = useState(false);
   const [active, setActive] = useState("about");
   const [menuOpen, setMenuOpen] = useState(false);
@@ -204,12 +222,19 @@ function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // close menu on resize to desktop
+  useEffect(() => {
+    if (!isMobile) setMenuOpen(false);
+  }, [isMobile]);
+
   const logos = [
     { src: "/logos/rvce.png", invert: true },
     { src: "/logos/aicte.png" },
     { src: "/logos/idealab.png" },
     { src: "/logos/boeing.png" },
   ];
+
+  const NAV_ITEMS = ["about", "facilities", "vision", "contact"];
 
   return (
     <motion.nav
@@ -222,35 +247,44 @@ function Navbar() {
         left: 0,
         width: "100%",
         zIndex: 100,
-        padding: "12px 24px 0",
+        padding: "10px 16px 0",
         boxSizing: "border-box",
       }}>
+      {/* bar */}
       <div
         style={{
-          background: "rgba(6,10,16,0.85)",
+          background: "rgba(6,10,16,0.9)",
           backdropFilter: "blur(20px)",
-          borderRadius: 14,
+          borderRadius: menuOpen ? "14px 14px 0 0" : 14,
           border: "1px solid rgba(255,107,0,0.2)",
+          borderBottom: menuOpen ? "1px solid rgba(255,107,0,0.08)" : undefined,
           boxShadow: "0 4px 40px rgba(255,107,0,0.1)",
-          padding: "10px 28px",
+          padding: "10px 20px",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
+          transition: "border-radius 0.2s",
         }}>
-        <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
-          {logos.map((l, i) => (
+        {/* logos — fewer on mobile */}
+        <div
+          style={{
+            display: "flex",
+            gap: isMobile ? 8 : 14,
+            alignItems: "center",
+          }}>
+          {logos.slice(0, isMobile ? 2 : 4).map((l, i) => (
             <div
               key={i}
               style={{
                 background: "rgba(255,255,255,0.06)",
-                borderRadius: 8,
-                padding: "4px 8px",
+                borderRadius: 7,
+                padding: "3px 6px",
               }}>
               <img
                 src={l.src}
                 alt=""
                 style={{
-                  height: 32,
+                  height: isMobile ? 24 : 30,
                   objectFit: "contain",
                   filter: l.invert ? "invert(1) brightness(2)" : "none",
                 }}
@@ -258,82 +292,161 @@ function Navbar() {
             </div>
           ))}
         </div>
-        <div style={{ display: "flex", gap: 36 }}>
-          {["about", "facilities", "vision", "contact"].map((item) => (
-            <a
-              key={item}
-              href={`#${item}`}
+
+        {/* desktop links */}
+        {!isMobile && (
+          <div style={{ display: "flex", gap: 32 }}>
+            {NAV_ITEMS.map((item) => (
+              <a
+                key={item}
+                href={`#${item}`}
+                style={{
+                  fontFamily: "'Orbitron', monospace",
+                  fontSize: 10,
+                  letterSpacing: "0.18em",
+                  textTransform: "uppercase",
+                  color: active === item ? ORANGE : "rgba(255,255,255,0.5)",
+                  textDecoration: "none",
+                  transition: "color 0.2s",
+                  position: "relative",
+                }}>
+                {item}
+                {active === item && (
+                  <motion.span
+                    layoutId="nav-underline"
+                    style={{
+                      position: "absolute",
+                      left: 0,
+                      bottom: -4,
+                      width: "100%",
+                      height: 1.5,
+                      background: `linear-gradient(90deg, ${ORANGE}, rgba(255,107,0,0.3))`,
+                      borderRadius: 2,
+                      boxShadow: `0 0 8px ${ORANGE}`,
+                    }}
+                  />
+                )}
+              </a>
+            ))}
+          </div>
+        )}
+
+        {/* hamburger */}
+        {isMobile && (
+          <button
+            onClick={() => setMenuOpen((o) => !o)}
+            aria-label="Toggle menu"
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              padding: 8,
+              display: "flex",
+              flexDirection: "column",
+              gap: 5,
+              alignItems: "center",
+              justifyContent: "center",
+            }}>
+            <motion.div
+              animate={{ rotate: menuOpen ? 45 : 0, y: menuOpen ? 7 : 0 }}
               style={{
-                fontFamily: "'Orbitron', monospace",
-                fontSize: 11,
-                letterSpacing: "0.18em",
-                textTransform: "uppercase",
-                color: active === item ? ORANGE : "rgba(255,255,255,0.5)",
-                textDecoration: "none",
-                transition: "color 0.2s",
-                position: "relative",
-              }}>
-              {item}
-              {active === item && (
-                <motion.span
-                  layoutId="nav-underline"
-                  style={{
-                    position: "absolute",
-                    left: 0,
-                    bottom: -4,
-                    width: "100%",
-                    height: 1.5,
-                    background: `linear-gradient(90deg, ${ORANGE}, rgba(255,107,0,0.3))`,
-                    borderRadius: 2,
-                    boxShadow: `0 0 8px ${ORANGE}`,
-                  }}
-                />
-              )}
-            </a>
-          ))}
-        </div>
+                width: 22,
+                height: 2,
+                background: ORANGE,
+                borderRadius: 1,
+                transformOrigin: "center",
+              }}
+            />
+            <motion.div
+              animate={{ opacity: menuOpen ? 0 : 1 }}
+              style={{
+                width: 22,
+                height: 2,
+                background: ORANGE,
+                borderRadius: 1,
+              }}
+            />
+            <motion.div
+              animate={{ rotate: menuOpen ? -45 : 0, y: menuOpen ? -7 : 0 }}
+              style={{
+                width: 22,
+                height: 2,
+                background: ORANGE,
+                borderRadius: 1,
+                transformOrigin: "center",
+              }}
+            />
+          </button>
+        )}
       </div>
-      {menuOpen && (
-        <div
-          style={{
-            background: "rgba(6,10,16,0.95)",
-            backdropFilter: "blur(20px)",
-            borderRadius: "0 0 14px 14px",
-            border: "1px solid rgba(255,107,0,0.15)",
-            borderTop: "none",
-            padding: "16px 28px 20px",
-            display: "flex",
-            flexDirection: "column",
-            gap: 16,
-          }}>
-          {["about", "facilities", "vision", "contact"].map((item) => (
-            <a
-              key={item}
-              href={`#${item}`}
-              onClick={() => setMenuOpen(false)}
+
+      {/* mobile dropdown */}
+      <AnimatePresence>
+        {isMobile && menuOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25, ease: "easeInOut" }}
+            style={{ overflow: "hidden" }}>
+            <div
               style={{
-                fontFamily: "'Orbitron', monospace",
-                fontSize: 11,
-                letterSpacing: "0.18em",
-                textTransform: "uppercase",
-                color: active === item ? ORANGE : "rgba(255,255,255,0.5)",
-                textDecoration: "none",
+                background: "rgba(6,10,16,0.95)",
+                backdropFilter: "blur(20px)",
+                borderRadius: "0 0 14px 14px",
+                border: "1px solid rgba(255,107,0,0.15)",
+                borderTop: "none",
+                padding: "8px 20px 20px",
+                display: "flex",
+                flexDirection: "column",
               }}>
-              {item}
-            </a>
-          ))}
-        </div>
-      )}
-      {/* suppress unused var warning */}
-      <span
-        style={{ display: "none" }}
-        onClick={() => setMenuOpen((o) => !o)}
-      />
+              {NAV_ITEMS.map((item, i) => (
+                <a
+                  key={item}
+                  href={`#${item}`}
+                  onClick={() => setMenuOpen(false)}
+                  style={{
+                    fontFamily: "'Orbitron', monospace",
+                    fontSize: 12,
+                    letterSpacing: "0.18em",
+                    textTransform: "uppercase",
+                    color: active === item ? ORANGE : "rgba(255,255,255,0.55)",
+                    textDecoration: "none",
+                    padding: "14px 0",
+                    borderBottom:
+                      i < NAV_ITEMS.length - 1
+                        ? "1px solid rgba(255,255,255,0.05)"
+                        : "none",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                  }}>
+                  {active === item && (
+                    <span
+                      style={{
+                        width: 4,
+                        height: 4,
+                        borderRadius: "50%",
+                        background: ORANGE,
+                        display: "inline-block",
+                        flexShrink: 0,
+                      }}
+                    />
+                  )}
+                  {item}
+                </a>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.nav>
   );
 }
 
+/* ─── hero ─── */
 function Hero() {
+  const isMobile = useIsMobile();
   const words = ["BUILD.", "INNOVATE.", "LAUNCH."];
   const [wIdx, setWIdx] = useState(0);
 
@@ -347,14 +460,15 @@ function Hero() {
       style={{
         position: "relative",
         zIndex: 10,
-        minHeight: "100vh",
+        minHeight: "100svh",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
         textAlign: "center",
-        padding: "0 24px",
+        padding: isMobile ? "80px 20px 60px" : "0 24px",
       }}>
+      {/* badge */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -366,11 +480,11 @@ function Hero() {
           background: "rgba(255,107,0,0.08)",
           border: "1px solid rgba(255,107,0,0.25)",
           borderRadius: 100,
-          padding: "6px 18px",
-          marginBottom: 28,
+          padding: isMobile ? "5px 14px" : "6px 18px",
+          marginBottom: isMobile ? 20 : 28,
           fontFamily: "'Orbitron', monospace",
-          fontSize: 10,
-          letterSpacing: "0.22em",
+          fontSize: isMobile ? 8 : 10,
+          letterSpacing: "0.18em",
           color: ORANGE,
         }}>
         <span
@@ -382,11 +496,13 @@ function Hero() {
             boxShadow: `0 0 8px ${ORANGE}`,
             animation: "pulse 2s ease-in-out infinite",
             display: "inline-block",
+            flexShrink: 0,
           }}
         />
         BOEING · RVCE · AICTE
       </motion.div>
 
+      {/* title */}
       <motion.div
         initial={{ opacity: 0, scale: 0.85 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -394,7 +510,9 @@ function Hero() {
         <h1
           style={{
             fontFamily: "'Orbitron', monospace",
-            fontSize: "clamp(56px, 10vw, 110px)",
+            fontSize: isMobile
+              ? "clamp(52px, 18vw, 80px)"
+              : "clamp(56px, 10vw, 110px)",
             fontWeight: 900,
             lineHeight: 0.95,
             letterSpacing: "-0.01em",
@@ -406,7 +524,9 @@ function Hero() {
         <h1
           style={{
             fontFamily: "'Orbitron', monospace",
-            fontSize: "clamp(56px, 10vw, 110px)",
+            fontSize: isMobile
+              ? "clamp(52px, 18vw, 80px)"
+              : "clamp(56px, 10vw, 110px)",
             fontWeight: 900,
             lineHeight: 0.95,
             letterSpacing: "0.04em",
@@ -418,62 +538,68 @@ function Hero() {
         </h1>
       </motion.div>
 
+      {/* tagline */}
       <motion.p
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6 }}
         style={{
-          marginTop: 28,
+          marginTop: isMobile ? 20 : 28,
           fontFamily: "'Space Mono', monospace",
-          fontSize: "clamp(13px, 1.5vw, 17px)",
+          fontSize: isMobile ? 10 : "clamp(13px, 1.5vw, 17px)",
           color: "rgba(255,255,255,0.45)",
-          letterSpacing: "0.12em",
+          letterSpacing: isMobile ? "0.08em" : "0.12em",
           textTransform: "uppercase",
+          maxWidth: isMobile ? 260 : "none",
+          lineHeight: 1.7,
         }}>
         Igniting Innovation · Engineering Excellence
       </motion.p>
 
+      {/* word ticker */}
       <div
         style={{
-          marginTop: 12,
+          marginTop: 10,
           fontFamily: "'Orbitron', monospace",
-          fontSize: "clamp(18px, 3vw, 28px)",
+          fontSize: isMobile ? 20 : "clamp(18px, 3vw, 28px)",
           fontWeight: 700,
           color: ORANGE,
-          height: 40,
+          height: isMobile ? 32 : 40,
           overflow: "hidden",
         }}>
         <AnimatePresence mode="wait">
           <motion.span
             key={wIdx}
-            initial={{ y: 30, opacity: 0 }}
+            initial={{ y: 28, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            exit={{ y: -30, opacity: 0 }}
-            transition={{ duration: 0.4 }}
+            exit={{ y: -28, opacity: 0 }}
+            transition={{ duration: 0.35 }}
             style={{ display: "block" }}>
             {words[wIdx]}
           </motion.span>
         </AnimatePresence>
       </div>
 
+      {/* CTAs */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.9 }}
         style={{
-          marginTop: 44,
+          marginTop: isMobile ? 32 : 44,
           display: "flex",
-          gap: 16,
-          flexWrap: "wrap",
-          justifyContent: "center",
+          flexDirection: isMobile ? "column" : "row",
+          gap: 12,
+          width: isMobile ? "100%" : "auto",
+          maxWidth: isMobile ? 320 : "none",
+          alignItems: "stretch",
         }}>
         <motion.a
           href="#about"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.97 }}
+          whileTap={{ scale: 0.96 }}
           style={{
-            display: "inline-block",
-            padding: "14px 36px",
+            display: "block",
+            padding: "15px 32px",
             background: ORANGE,
             color: "#000",
             fontFamily: "'Orbitron', monospace",
@@ -483,17 +609,17 @@ function Hero() {
             textTransform: "uppercase",
             textDecoration: "none",
             borderRadius: 8,
+            textAlign: "center",
             boxShadow: `0 0 30px rgba(255,107,0,0.4)`,
           }}>
           Explore Lab
         </motion.a>
         <motion.a
           href="#contact"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.97 }}
+          whileTap={{ scale: 0.96 }}
           style={{
-            display: "inline-block",
-            padding: "14px 36px",
+            display: "block",
+            padding: "15px 32px",
             background: "transparent",
             color: ORANGE,
             fontFamily: "'Orbitron', monospace",
@@ -503,54 +629,60 @@ function Hero() {
             textTransform: "uppercase",
             textDecoration: "none",
             borderRadius: 8,
+            textAlign: "center",
             border: `1px solid rgba(255,107,0,0.4)`,
           }}>
           Get Started
         </motion.a>
       </motion.div>
 
-      <motion.div
-        animate={{ y: [0, 10, 0] }}
-        transition={{ repeat: Infinity, duration: 2 }}
-        style={{
-          position: "absolute",
-          bottom: 40,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: 6,
-        }}>
-        <div
+      {/* scroll cue — hide on mobile to save space */}
+      {!isMobile && (
+        <motion.div
+          animate={{ y: [0, 10, 0] }}
+          transition={{ repeat: Infinity, duration: 2 }}
           style={{
-            width: 1,
-            height: 40,
-            background:
-              "linear-gradient(to bottom, rgba(255,107,0,0.6), transparent)",
-          }}
-        />
-        <span
-          style={{
-            fontFamily: "'Space Mono', monospace",
-            fontSize: 9,
-            letterSpacing: "0.2em",
-            color: "rgba(255,255,255,0.25)",
-            textTransform: "uppercase",
+            position: "absolute",
+            bottom: 40,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 6,
           }}>
-          scroll
-        </span>
-      </motion.div>
+          <div
+            style={{
+              width: 1,
+              height: 40,
+              background:
+                "linear-gradient(to bottom, rgba(255,107,0,0.6), transparent)",
+            }}
+          />
+          <span
+            style={{
+              fontFamily: "'Space Mono', monospace",
+              fontSize: 9,
+              letterSpacing: "0.2em",
+              color: "rgba(255,255,255,0.25)",
+              textTransform: "uppercase",
+            }}>
+            scroll
+          </span>
+        </motion.div>
+      )}
 
       <style>{`
         @keyframes pulse {
           0%, 100% { opacity: 1; transform: scale(1); }
-          50% { opacity: 0.5; transform: scale(0.8); }
+          50%       { opacity: 0.5; transform: scale(0.8); }
         }
       `}</style>
     </section>
   );
 }
 
+/* ─── about ─── */
 function About() {
+  const isMobile = useIsMobile();
   const features = [
     "Proof of Concept Development",
     "3D Printing & Rapid Prototyping",
@@ -565,32 +697,36 @@ function About() {
       style={{
         position: "relative",
         zIndex: 10,
-        padding: "120px clamp(24px, 8vw, 120px)",
+        padding: isMobile ? "72px 20px" : "120px clamp(24px, 8vw, 120px)",
       }}>
       <SectionHeading>About IDEA Lab</SectionHeading>
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-          gap: 60,
+          gridTemplateColumns: isMobile
+            ? "1fr"
+            : "repeat(auto-fit, minmax(280px, 1fr))",
+          gap: isMobile ? 36 : 60,
           alignItems: "start",
         }}>
+        {/* text + stats */}
         <div>
           <p
             style={{
               fontFamily: "'Space Mono', monospace",
               color: "rgba(255,255,255,0.5)",
               lineHeight: 1.9,
-              fontSize: 14,
+              fontSize: isMobile ? 13 : 14,
               borderLeft: `2px solid rgba(255,107,0,0.3)`,
-              paddingLeft: 20,
+              paddingLeft: 18,
             }}>
             Boeing–RVCE–AICTE IDEA Lab is a collaborative initiative established
             to foster innovation, creativity, and entrepreneurship. Supported by
             Boeing India and AICTE, hosted at RV College of Engineering,
             Bengaluru.
           </p>
-          <div style={{ display: "flex", gap: 32, marginTop: 40 }}>
+          <div
+            style={{ display: "flex", gap: isMobile ? 24 : 32, marginTop: 32 }}>
             {[
               { n: "500+", label: "Students" },
               { n: "3", label: "Partners" },
@@ -600,7 +736,7 @@ function About() {
                 <div
                   style={{
                     fontFamily: "'Orbitron', monospace",
-                    fontSize: 32,
+                    fontSize: isMobile ? 26 : 32,
                     fontWeight: 900,
                     color: ORANGE,
                     textShadow: `0 0 20px rgba(255,107,0,0.4)`,
@@ -610,7 +746,7 @@ function About() {
                 <div
                   style={{
                     fontFamily: "'Space Mono', monospace",
-                    fontSize: 10,
+                    fontSize: 9,
                     letterSpacing: "0.18em",
                     color: "rgba(255,255,255,0.35)",
                     textTransform: "uppercase",
@@ -621,28 +757,36 @@ function About() {
             ))}
           </div>
         </div>
+
+        {/* feature list */}
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {features.map((f, i) => (
             <motion.div
               key={i}
-              initial={{ opacity: 0, x: 30 }}
+              initial={{ opacity: 0, x: 24 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: i * 0.08 }}>
+              transition={{ delay: i * 0.07 }}>
               <ScanCard
                 style={{
-                  padding: "14px 20px",
+                  padding: "13px 18px",
                   display: "flex",
                   alignItems: "center",
                   gap: 14,
                 }}>
-                <span style={{ color: ORANGE, fontSize: 16, opacity: 0.8 }}>
+                <span
+                  style={{
+                    color: ORANGE,
+                    fontSize: 14,
+                    opacity: 0.8,
+                    flexShrink: 0,
+                  }}>
                   ◈
                 </span>
                 <span
                   style={{
                     fontFamily: "'Space Mono', monospace",
-                    fontSize: 13,
+                    fontSize: isMobile ? 11.5 : 13,
                     color: "rgba(255,255,255,0.75)",
                   }}>
                   {f}
@@ -656,7 +800,9 @@ function About() {
   );
 }
 
+/* ─── facilities ─── */
 function Facilities() {
+  const isMobile = useIsMobile();
   const items = [
     {
       title: "Workshops",
@@ -681,7 +827,7 @@ function Facilities() {
       style={{
         position: "relative",
         zIndex: 10,
-        padding: "120px clamp(24px, 8vw, 120px)",
+        padding: isMobile ? "72px 20px" : "120px clamp(24px, 8vw, 120px)",
         background:
           "linear-gradient(180deg, transparent, rgba(255,107,0,0.03), transparent)",
       }}>
@@ -689,17 +835,19 @@ function Facilities() {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-          gap: 20,
+          gridTemplateColumns: isMobile
+            ? "1fr"
+            : "repeat(auto-fit, minmax(240px, 1fr))",
+          gap: 16,
         }}>
         {items.map((item, i) => (
           <motion.div
             key={i}
-            initial={{ opacity: 0, y: 40 }}
+            initial={{ opacity: 0, y: 32 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ delay: i * 0.12 }}>
-            <ScanCard style={{ padding: "32px 28px", height: "100%" }}>
+            transition={{ delay: isMobile ? 0 : i * 0.1 }}>
+            <ScanCard style={{ padding: isMobile ? "24px 20px" : "32px 28px" }}>
               <div
                 style={{
                   display: "inline-block",
@@ -711,25 +859,25 @@ function Facilities() {
                   fontSize: 9,
                   letterSpacing: "0.2em",
                   color: ORANGE,
-                  marginBottom: 20,
+                  marginBottom: 16,
                 }}>
                 {item.tag}
               </div>
               <h3
                 style={{
                   fontFamily: "'Orbitron', monospace",
-                  fontSize: 17,
+                  fontSize: isMobile ? 15 : 17,
                   fontWeight: 700,
                   color: "#fff",
-                  marginBottom: 12,
-                  letterSpacing: "0.05em",
+                  marginBottom: 10,
+                  letterSpacing: "0.04em",
                 }}>
                 {item.title}
               </h3>
               <p
                 style={{
                   fontFamily: "'Space Mono', monospace",
-                  fontSize: 12,
+                  fontSize: isMobile ? 11.5 : 12,
                   color: "rgba(255,255,255,0.45)",
                   lineHeight: 1.8,
                 }}>
@@ -743,27 +891,31 @@ function Facilities() {
   );
 }
 
+/* ─── vision ─── */
 function Vision() {
+  const isMobile = useIsMobile();
   return (
     <section
       id="vision"
       style={{
         position: "relative",
         zIndex: 10,
-        padding: "120px clamp(24px, 8vw, 120px)",
+        padding: isMobile ? "72px 20px" : "120px clamp(24px, 8vw, 120px)",
       }}>
       <SectionHeading>Vision & Mission</SectionHeading>
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-          gap: 24,
+          gridTemplateColumns: isMobile
+            ? "1fr"
+            : "repeat(auto-fit, minmax(280px, 1fr))",
+          gap: 16,
         }}>
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 28 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}>
-          <ScanCard style={{ padding: "36px 32px", height: "100%" }}>
+          <ScanCard style={{ padding: isMobile ? "28px 22px" : "36px 32px" }}>
             <div
               style={{
                 fontFamily: "'Orbitron', monospace",
@@ -771,7 +923,7 @@ function Vision() {
                 letterSpacing: "0.25em",
                 color: ORANGE,
                 textTransform: "uppercase",
-                marginBottom: 16,
+                marginBottom: 14,
                 opacity: 0.7,
               }}>
               / Vision
@@ -779,18 +931,18 @@ function Vision() {
             <h3
               style={{
                 fontFamily: "'Orbitron', monospace",
-                fontSize: 20,
+                fontSize: isMobile ? 17 : 20,
                 fontWeight: 700,
                 color: "#fff",
-                marginBottom: 16,
-                letterSpacing: "0.04em",
+                marginBottom: 14,
+                letterSpacing: "0.03em",
               }}>
               Innovation Ecosystem
             </h3>
             <p
               style={{
                 fontFamily: "'Space Mono', monospace",
-                fontSize: 12.5,
+                fontSize: isMobile ? 12 : 12.5,
                 color: "rgba(255,255,255,0.5)",
                 lineHeight: 1.9,
               }}>
@@ -802,11 +954,11 @@ function Vision() {
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 28 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ delay: 0.1 }}>
-          <ScanCard style={{ padding: "36px 32px", height: "100%" }}>
+          transition={{ delay: isMobile ? 0 : 0.1 }}>
+          <ScanCard style={{ padding: isMobile ? "28px 22px" : "36px 32px" }}>
             <div
               style={{
                 fontFamily: "'Orbitron', monospace",
@@ -814,7 +966,7 @@ function Vision() {
                 letterSpacing: "0.25em",
                 color: ORANGE,
                 textTransform: "uppercase",
-                marginBottom: 16,
+                marginBottom: 14,
                 opacity: 0.7,
               }}>
               / Mission
@@ -822,11 +974,11 @@ function Vision() {
             <h3
               style={{
                 fontFamily: "'Orbitron', monospace",
-                fontSize: 20,
+                fontSize: isMobile ? 17 : 20,
                 fontWeight: 700,
                 color: "#fff",
-                marginBottom: 20,
-                letterSpacing: "0.04em",
+                marginBottom: 18,
+                letterSpacing: "0.03em",
               }}>
               Our Core Goals
             </h3>
@@ -851,11 +1003,11 @@ function Vision() {
                   style={{ display: "flex", alignItems: "center", gap: 12 }}>
                   <span
                     style={{
-                      width: 6,
-                      height: 6,
+                      width: 5,
+                      height: 5,
                       borderRadius: "50%",
                       background: ORANGE,
-                      boxShadow: `0 0 8px ${ORANGE}`,
+                      boxShadow: `0 0 6px ${ORANGE}`,
                       flexShrink: 0,
                       display: "inline-block",
                     }}
@@ -863,7 +1015,7 @@ function Vision() {
                   <span
                     style={{
                       fontFamily: "'Space Mono', monospace",
-                      fontSize: 12.5,
+                      fontSize: isMobile ? 11.5 : 12.5,
                       color: "rgba(255,255,255,0.55)",
                     }}>
                     {item}
@@ -878,14 +1030,16 @@ function Vision() {
   );
 }
 
+/* ─── CTA ─── */
 function CTA() {
+  const isMobile = useIsMobile();
   return (
     <section
       id="contact"
       style={{
         position: "relative",
         zIndex: 10,
-        padding: "120px 24px",
+        padding: isMobile ? "80px 20px" : "120px 24px",
         textAlign: "center",
       }}>
       <div
@@ -894,7 +1048,7 @@ function CTA() {
           top: "50%",
           left: "50%",
           transform: "translate(-50%,-50%)",
-          width: 600,
+          width: isMobile ? "100%" : 600,
           height: 300,
           background:
             "radial-gradient(ellipse, rgba(255,107,0,0.1), transparent 70%)",
@@ -902,7 +1056,7 @@ function CTA() {
         }}
       />
       <motion.div
-        initial={{ opacity: 0, y: 30 }}
+        initial={{ opacity: 0, y: 28 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}>
         <div
@@ -913,39 +1067,44 @@ function CTA() {
             letterSpacing: "0.3em",
             color: ORANGE,
             textTransform: "uppercase",
-            marginBottom: 20,
+            marginBottom: 18,
             opacity: 0.7,
           }}>
           — Join Us —
         </div>
+
         <h2
           style={{
             fontFamily: "'Orbitron', monospace",
-            fontSize: "clamp(32px, 6vw, 64px)",
+            fontSize: isMobile
+              ? "clamp(26px, 8vw, 42px)"
+              : "clamp(32px, 6vw, 64px)",
             fontWeight: 900,
             color: "#fff",
-            letterSpacing: "0.04em",
+            letterSpacing: "0.03em",
             marginBottom: 12,
+            lineHeight: 1.1,
           }}>
           Build. Innovate. Launch.
         </h2>
+
         <p
           style={{
             fontFamily: "'Space Mono', monospace",
-            fontSize: 13,
+            fontSize: 12,
             color: "rgba(255,255,255,0.4)",
             letterSpacing: "0.08em",
-            marginBottom: 40,
+            marginBottom: 36,
           }}>
           Join IDEA Lab and create the future.
         </p>
+
         <motion.a
           href="mailto:idealab@rvce.edu.in"
-          whileHover={{ scale: 1.06 }}
-          whileTap={{ scale: 0.97 }}
+          whileTap={{ scale: 0.96 }}
           style={{
             display: "inline-block",
-            padding: "16px 52px",
+            padding: isMobile ? "15px 40px" : "16px 52px",
             background: ORANGE,
             color: "#000",
             fontFamily: "'Orbitron', monospace",
@@ -964,25 +1123,28 @@ function CTA() {
   );
 }
 
+/* ─── footer ─── */
 function Footer() {
+  const isMobile = useIsMobile();
   return (
     <footer
       style={{
         position: "relative",
         zIndex: 10,
         borderTop: "1px solid rgba(255,107,0,0.1)",
-        padding: "32px 48px",
+        padding: isMobile ? "24px 20px" : "32px 48px",
         display: "flex",
         alignItems: "center",
+        flexDirection: isMobile ? "column" : "row",
         justifyContent: "space-between",
-        flexWrap: "wrap",
-        gap: 12,
+        gap: 8,
+        textAlign: isMobile ? "center" : "left",
       }}>
       <span
         style={{
           fontFamily: "'Orbitron', monospace",
-          fontSize: 9,
-          letterSpacing: "0.18em",
+          fontSize: 8,
+          letterSpacing: "0.16em",
           color: "rgba(255,255,255,0.2)",
           textTransform: "uppercase",
         }}>
@@ -1000,6 +1162,7 @@ function Footer() {
   );
 }
 
+/* ─── root ─── */
 export default function App() {
   return (
     <>
@@ -1007,7 +1170,15 @@ export default function App() {
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         html { scroll-behavior: smooth; }
-        body { background: #060a10; color: #fff; font-family: 'Space Mono', monospace; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+        body {
+          background: #060a10; color: #fff;
+          font-family: 'Space Mono', monospace;
+          overflow-x: hidden; -webkit-font-smoothing: antialiased;
+        }
+        /* prevent iOS tap highlight */
+        a, button { -webkit-tap-highlight-color: transparent; }
+        /* smooth momentum scroll on iOS */
+        html { -webkit-overflow-scrolling: touch; }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: #060a10; }
         ::-webkit-scrollbar-thumb { background: rgba(255,107,0,0.4); border-radius: 2px; }
